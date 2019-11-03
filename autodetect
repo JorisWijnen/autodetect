@@ -1,0 +1,100 @@
+#!/usr/bin/python3
+import os
+import sys
+import subprocess
+print("###########################################")
+print("Welcome to autodetect")
+print(r"""     
+     QQQQQQQQQ      
+   QQ:::::::::QQ    
+ QQ:::::::::::::QQ  
+Q:::::::QQQ:::::::Q 
+Q::::::O   Q::::::Q 
+Q:::::O     Q:::::Q 
+Q:::::O     Q:::::Q 
+Q:::::O     Q:::::Q 
+Q:::::O     Q:::::Q 
+Q:::::O     Q:::::Q 
+Q:::::O  QQQQ:::::Q 
+Q::::::O Q::::::::Q 
+Q:::::::QQ::::::::Q 
+ QQ::::::::::::::Q  
+   QQ:::::::::::Q   
+     QQQQQQQQ::::QQ 
+             Q:::::Q
+              QQQQQQ
+              """)
+print("Author: Joris 'Qarnix' Wijnen")
+print("###########################################\n\n")
+
+def validate_input_int(value):
+    if value == "q":
+        sys.exit()
+    try:
+        return int(value)
+    except:
+        print("Input not an integer")
+        return validate_input_int(input())
+
+def automatic_detect(target):
+    print("Started automated scanning...")
+    print(detect_webserver(target))
+    print(detect_ad(target))
+
+def manual_detect(target):
+    #ask for server type
+    choices = ["Webserver","Active Direcory"]
+    print("What type of server do you want to detect?")
+    for i in range(len(choices)):
+        print("{}. {}".format(i,choices[i]))
+    search_type_choice = validate_input_int(input())
+    if(choices[search_type_choice]) == "Webserver":
+        print(detect_webserver(target))
+    elif(choices[search_type_choice]) == "Active Direcory":
+        print(detect_ad(target))
+    else:
+        print("choice does not exist")
+        sys.exit()
+
+def detect_webserver(target):
+    command = "nmap -p 80,443 {}".format(target)
+    process = subprocess.run(command.split(), stdout=subprocess.PIPE)
+    result = process.stdout
+    #print(process.stdout)
+    return "Is this a Webserver?: ANSWER"
+
+def detect_ad(ip):
+    return "Is this an Active Directory?: ANSWER"
+
+def main():
+#ask for detection method
+    detection_methods = ["automatic","manual"]
+    print("What detection method do you want to use?")
+    print("0. automatic")
+    print("1. manual")
+    detect_method_choice = validate_input_int(input())
+
+    #ask for target ip if not null
+    print("What is the target ip address?")
+    target = input()
+    print("detection method: {}\ntarget ip: {}".format(detection_methods[detect_method_choice],target))
+
+    #run chosen scan
+    if detect_method_choice == 0:
+        automatic_detect(target)
+    elif detect_method_choice == 1:
+        manual_detect(target)
+    else:
+        print("choice does not exist")
+        sys.exit()
+    
+    #ask for new scan
+    print("\nWant to run another scan? (y/n)")
+    new_scan = input().lower()
+    if new_scan == "y":
+        main()
+    else:
+        sys.exit()
+
+if __name__ == '__main__':
+    main()
