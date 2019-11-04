@@ -79,6 +79,7 @@ def detect_webserver(target):
         return colored("Is this a Webserver?: NO\n", "red")
 
 def detect_ad(target):
+    print("Started scanning for active directory...\n")
     command = "nmap -p 389,636,88 {} -oX -".format(target)
     process = subprocess.run(command.split(), stdout=subprocess.PIPE)
     result = process.stdout
