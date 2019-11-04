@@ -2,6 +2,8 @@
 import os
 import sys
 import subprocess
+import xml.etree.ElementTree as ET
+from termcolor import colored, cprint
 print("###########################################")
 print("Welcome to autodetect")
 print(r"""     
@@ -37,7 +39,7 @@ def validate_input_int(value):
         return validate_input_int(input())
 
 def automatic_detect(target):
-    print("Started automated scanning...")
+    print("Started automated scanning...\n")
     print(detect_webserver(target))
     print(detect_ad(target))
 
@@ -56,15 +58,35 @@ def manual_detect(target):
         print("choice does not exist")
         sys.exit()
 
+def parse_for_port(xml, ports):
+    root = ET.fromstring(xml)
+    ports = root.findall("./host/ports/")
+    for port in ports:
+        state = port.find("state")
+        if state.get("state") == "open":
+            return "YES"
+    return "NO"
+
 def detect_webserver(target):
-    command = "nmap -p 80,443 {}".format(target)
+    print("Started scanning for webserver...\n")
+    command = "nmap -p 80,443 {} -oX -".format(target)
     process = subprocess.run(command.split(), stdout=subprocess.PIPE)
     result = process.stdout
-    #print(process.stdout)
-    return "Is this a Webserver?: ANSWER"
+    result = parse_for_port(result,["80","443"])
+    if result == "YES":
+        return colored("Is this a Webserver?: YES\n", "green")
+    else:
+        return colored("Is this a Webserver?: NO\n", "red")
 
-def detect_ad(ip):
-    return "Is this an Active Directory?: ANSWER"
+def detect_ad(target):
+    command = "nmap -p 389,636,88 {} -oX -".format(target)
+    process = subprocess.run(command.split(), stdout=subprocess.PIPE)
+    result = process.stdout
+    result = parse_for_port(result,["389","636","88"])
+    if result == "YES":
+        return colored("Is this a Active Directory?: YES\n", "green")
+    else:
+        return colored("Is this a Active Directory?: NO\n", "red")
 
 def main():
 #ask for detection method
@@ -77,7 +99,7 @@ def main():
     #ask for target ip if not null
     print("What is the target ip address?")
     target = input()
-    print("detection method: {}\ntarget ip: {}".format(detection_methods[detect_method_choice],target))
+    print("detection method: {}\ntarget ip: {}\n".format(detection_methods[detect_method_choice],target))
 
     #run chosen scan
     if detect_method_choice == 0:
